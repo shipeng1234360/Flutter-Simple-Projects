@@ -1,6 +1,6 @@
 # adventuregame
 
-SUC Mobile Application Development - Tutorial Challange 2
+A new Flutter project. 
 
 ## Getting Started
 

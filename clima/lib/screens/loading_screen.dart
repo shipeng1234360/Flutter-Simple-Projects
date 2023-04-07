@@ -1,9 +1,7 @@
+import 'package:clima_flutter/screens/location_screen.dart';
+import 'package:clima_flutter/services/weather.dart';
 import 'package:flutter/material.dart';
-import 'package:clima_flutter/services/location.dart';
-import 'package:http/http.dart';
-import 'dart:convert';
-
-const String apiKey = '589f8e516f2615ff269c615d4f4d12c0';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({Key? key}) : super(key: key);
@@ -13,27 +11,20 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  //Create two double variables that will hold the latitude and longitude values
-  double? latitude;
-  double? longitude;
-
-  //Create a getLocation() method that will get the current location of the device
-  Future<void> getLocation() async {
+  //Create a getLocationData() method that will get the current location of the device
+  Future<void> getLocationData() async {
     //Wrap in a try and catch block in the case that the device location cannot be retrieved
     try {
-      //Create a Location object
-      Location location = Location();
-      //Call the getCurrentLocation() method
-      await location.getCurrentLocation();
+      WeatherModel weatherModel = WeatherModel();
+      var weatherData = await weatherModel.getLocationWeather();
 
-      latitude = location.latitude;
-      longitude = location.longitude;
-
-      //Print the latitude and longitude value
-      print(latitude);
-      print(longitude);
-
-      getData();
+      //Go to LocationScreen using Navigator.push()
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return LocationScreen(
+          // Pass the weatherData value to the LocationScreen
+          locationWeather: weatherData,
+        );
+      }));
     } catch(e) {
       print(e);
     }
@@ -43,52 +34,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   void initState() {
     super.initState();
-    getLocation();
-  }
-
-  //TODO: Step 23 - Combine the getLocation() and getData() method, create a NetworkHelper object in the method, call the getData() method
-  //TODO: Step 24 - Go to LocationScreen using Navigator.push()
-  //TODO: Step 28 - Pass the weatherData property to LocationScreen
-
-  //Create a getData() method that will make an API call to openweathermap using the http get method
-  Future getData() async {
-    try {
-      //Use our very own latitude and longitude value
-      Response response = await get(Uri.parse(
-          'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey&units=metric'));
-
-      //Print the response body if the statusCode is equal to 200, else, print the statusCode
-      if (response.statusCode == 200) {
-        //Use jsonDecode to unpack the response body data (temp, weather condition, city name)
-        print(response.body);
-
-        var data = response.body;
-        var weatherData = jsonDecode(data);
-        double temp = weatherData['main']['temp'];
-        int condition = weatherData['weather'][0]['id'];
-        String city_name = weatherData['name'];
-
-        print('Temp: $temp');
-        print('Condition: $condition');
-        print('City Name: $city_name');
-      } else
-        print(response.statusCode);
-    } catch(e) {
-      print(e);
-    }
+    getLocationData();
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Center(
-        //TODO: Step 25 - Add the flutter spinkit dependency, then add the SpinKitDoubleBounce widget as the child of the Center widget
-        //TODO: Step 26 - Change the color to white, and size to 100
-        child: ElevatedButton(
-          onPressed: () {
-          },
-          child: Text('Get Location'),
+        child: SpinKitDoubleBounce(
+          color: Colors.white,
+          size: 100,
         ),
       ),
     );

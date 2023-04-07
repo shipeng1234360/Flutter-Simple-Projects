@@ -1,21 +1,55 @@
+import 'package:clima_flutter/screens/city_screen.dart';
+import 'package:clima_flutter/services/weather.dart';
 import 'package:flutter/material.dart';
 import 'package:clima_flutter/utilities/constants.dart';
 
 class LocationScreen extends StatefulWidget {
-  //TODO: Step 27 - Create a final locationWeather property
-  const LocationScreen({Key? key}) : super(key: key);
+  //Create a final locationWeather property
+  final locationWeather;
+
+  LocationScreen({required this.locationWeather});
 
   @override
   State<LocationScreen> createState() => _LocationScreenState();
 }
 
 class _LocationScreenState extends State<LocationScreen> {
-  //TODO: Step 33 - Create a weatherModel object
-  //TODO: Step 29 - Override the initState(), try and print the locationWeather property (widget.locationWeather)
-  //TODO: Step 31 - Pass the widget.locationWeather to the updateUI() method
+  int? temp;
+  String? weatherIcon;
+  String? weatherMessage;
+  String? city_name;
+  //Create a weatherModel object
+  WeatherModel weatherModel = WeatherModel();
 
-  //TODO: Step 30 - Create a updateUI() method that receives a dynamic weatherData property. It extract the temp, weather id and city name value into three appropriate properties
-  //TODO: Step 34 - Call the getWeatherIcon and getWeatherMessage to get the appropriate value to be displayed
+  // Override the initState(), try and print the locationWeather property (widget.locationWeather)
+  @override
+  void initState() {
+    super.initState();
+    updateUI(widget.locationWeather);
+  }
+
+  //Create a updateUI() method that receives a dynamic weatherData property.
+  void updateUI(var weatherData) {
+    setState(() {
+      //What if weatherData is null? What happens then?
+      if(weatherData == null) {
+        temp = 0;
+        weatherIcon = 'Error';
+        weatherMessage = 'Unable to retrieve information';
+        city_name = 'any city';
+
+        return;
+      }
+      double temperature = weatherData['main']['temp'];
+      temp = temperature.toInt();
+      //Call the getWeatherIcon and getWeatherMessage to get appropriate values to be displayed
+      int condition = weatherData['weather'][0]['id'];
+      weatherIcon = weatherModel.getWeatherIcon(condition!);
+      weatherMessage = weatherModel.getMessage(temp!);
+      city_name = weatherData['name'];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +73,9 @@ class _LocationScreenState extends State<LocationScreen> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      //TODO: Step 35 - Call the getWeatherData method and update UI
+                      //Call the getLocationWeather() method and updateUI() methods
+                      var weatherData = weatherModel.getLocationWeather();
+                      updateUI(weatherData);
                     },
                     child: Icon(
                       Icons.near_me,
@@ -48,8 +84,17 @@ class _LocationScreenState extends State<LocationScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      //TODO: Step 36 - Go to the CityScreen using the Navigator.push()
+                    onPressed: () async {
+                      //Go to the CityScreen using the Navigator.push()
+                      var typedCity = await Navigator.push(context, MaterialPageRoute(builder: (context) {
+                        return CityScreen();
+                      }));
+
+                      //If the dynamic property isn't null, get weather data based on the cityName, then updateUI()
+                      if(typedCity != null) {
+                        var weatherData = await weatherModel.getCityWeather(typedCity);
+                        updateUI(weatherData);
+                      }
                     },
                     child: Icon(
                       Icons.location_city,
@@ -64,12 +109,11 @@ class _LocationScreenState extends State<LocationScreen> {
                 child: Row(
                   children: [
                     Text(
-                      //TODO: Step 32 - Replace the text with temp property
-                      '32°',
+                      temp.toString(),
                       style: kTempTextStyle,
                     ),
                     Text(
-                      '☀️',
+                      weatherIcon ?? '☀️',
                       style: kConditionTextStyle,
                     ),
                   ],
@@ -78,7 +122,7 @@ class _LocationScreenState extends State<LocationScreen> {
               Padding(
                 padding: EdgeInsets.only(right: 15.0),
                 child: Text(
-                  "It's 🍦 time in San Francisco!",
+                  "$weatherMessage in $city_name!",
                   textAlign: TextAlign.right,
                   style: kMessageTextStyle,
                 ),

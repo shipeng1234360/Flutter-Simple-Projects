@@ -9,6 +9,8 @@ class CityScreen extends StatefulWidget {
 }
 
 class _CityScreenState extends State<CityScreen> {
+  String? cityName;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +27,9 @@ class _CityScreenState extends State<CityScreen> {
               Align(
                 alignment: Alignment.topLeft,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                   child: Icon(
                     Icons.arrow_back_ios,
                     size: 50.0,
@@ -35,12 +39,18 @@ class _CityScreenState extends State<CityScreen> {
               ),
               Container(
                 padding: EdgeInsets.all(20.0),
-                //TODO: Step 37 - Insert a TextField widget here
-                child: null,
+                child: TextField(
+                  style: TextStyle(color: Colors.black),
+                  decoration: kTextFieldInputDecoration,
+                  onChanged: (String cityValue) {
+                    cityName = cityValue;
+                  },
+                ),
               ),
               TextButton(
                 onPressed: () {
-                  //TODO: Step 38 - Go back to the previous screen using Navigator.pop() passing the cityName property
+                  //Go back to the previous screen using Navigator.pop() passing the cityName property
+                  Navigator.pop(context, cityName);
                 },
                 child: Text(
                   'Get Weather',
